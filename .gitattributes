@@ -1,0 +1,18 @@
+# 仓库内统一 LF（比依赖 core.autocrlf 可靠，避免"全仓库都改过"的假 diff）
+* text=auto eol=lf
+
+# 二进制：不做行尾转换，也不尝试按文本 diff
+*.7z   binary
+*.zip  binary
+*.png  binary
+*.gif  binary
+*.jpg  binary
+*.webp binary
+*.avif binary
+*.jxl  binary
+*.mp4  binary
+*.ttf  binary
+*.otf  binary
+
+# SVG 是文本，保留 diff 能力（图标源文件经常微调）
+*.svg  text

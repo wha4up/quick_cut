@@ -1,0 +1,28 @@
+# 本地发布镜像与打包产物
+release/
+*.7z
+
+# 运行时产物
+quick_cut_sessions.json
+~~state/
+.quickcut/
+*.progress
+failure-*.txt
+*.log
+
+# 开发文件（架构 / 验证 / 历史 / 图标设计源 / 工具 / 检查脚本 / 部署脚本 / 备份）
+# 发布只含：scripts、script-opts、docs（用户文档）、preview、README、LICENSE、LICENSES
+coding/
+
+# 编辑器 / AI 工具 / 系统
+.codebuddy/
+.vscode/
+.idea/
+__pycache__/
+Thumbs.db
+desktop.ini
+.DS_Store
+*.pyc
+*.pyo
+# 编辑器/人手备份（README.md.bak 等）不进仓库
+*.bak

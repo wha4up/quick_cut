@@ -1,0 +1,16 @@
+Quickcut Icons Font License Notice
+
+This font file (Quickcut_icons.ttf) is built from modified vector icons derived from
+Google's Material Symbols.
+
+- Original project: Material Symbols (https://fonts.google.com/icons)
+- Copyright: Copyright (c) Google LLC
+- License: Apache License, Version 2.0
+  (https://www.apache.org/licenses/LICENSE-2.0)
+
+Modifications
+
+The icons were renamed, geometrically adjusted, re-mapped to the private-use codepoints
+starting at U+E900, and compiled into this TTF font file for use by the quick_cut mpv
+script. The font's name table keeps the original copyright, the "Material Symbols
+subset" description and the Apache License 2.0 reference.
