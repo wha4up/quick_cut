@@ -1,0 +1,13 @@
+# 发布包内容清单（唯一来源）
+# 本地 coding/package_release.ps1 与 CI .github/workflows/release.yml 都读这一份；
+# 要往包里加/删文件，只改这里。
+#
+# 格式：<仓库内源路径>=<包内目标路径>
+#   · 源路径可以是文件或目录（目录递归复制，保留内部结构）
+#   · 空行与 # 开头的行忽略
+#   · 明确不进包：README、CHANGELOG、docs/、preview/、coding/、.github/
+scripts/quick_cut=quick_cut
+script-opts/quick_cut.conf=script-opts/quick_cut.conf
+LICENSE=LICENSE
+LICENSES=LICENSES
+权利声明.md=权利声明.md

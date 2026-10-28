@@ -1,0 +1,143 @@
+name: release
+
+# 推送 main 即发布，版本、包名、tag、正文全部由本次推送决定，无需手工打 tag 或打包：
+#   · 版本取 scripts/quick_cut/core/config.lua 的 M.VERSION
+#   · 包内容取 .github/package-files.txt（本地 coding/package_release.ps1 共用同一份清单）
+#   · tag v<版本> 不存在 → 新建 release：标题 QUICK CUT V<版本>（与 v1.0 的 QUICK CUT V1.0 一致），
+#     正文取本次提交说明，
+#     末尾追加 CI 现场算出的大小与 SHA-256（正文与附件因此始终一致）
+#   · tag v<版本> 已存在 → 只构建与自检，不覆盖已发布的正文与附件
+#     （覆盖会让附件字节变化，正文里的 SHA-256 立刻失效）
+
+on:
+  push:
+    branches: [main]
+    # 只有影响包内容的路径才重新发布；纯文档/预览图改动不触发
+    paths:
+      - 'scripts/**'
+      - 'script-opts/**'
+      - 'LICENSE'
+      - 'LICENSES/**'
+      - '权利声明.md'
+      - '.github/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 读取 M.VERSION
+        id: ver
+        run: |
+          set -euo pipefail
+          v=$(sed -n 's/^M\.VERSION *= *"\([^"]*\)".*/\1/p' scripts/quick_cut/core/config.lua | head -n1)
+          if [ -z "$v" ]; then echo "::error::无法从 config.lua 解析 M.VERSION"; exit 1; fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "version = $v"
+
+      - name: 组装发布镜像（内容清单见 .github/package-files.txt）
+        run: |
+          set -euo pipefail
+          name="quick_cut_v${{ steps.ver.outputs.version }}"
+          mkdir -p "$name"
+          while IFS= read -r line; do
+            line="${line%$'\r'}"
+            case "$line" in ''|'#'*) continue ;; esac
+            src="${line%%=*}"
+            dst="${line#*=}"
+            if [ ! -e "$src" ]; then echo "::error::清单里的源路径不存在: $src"; exit 1; fi
+            mkdir -p "$name/$(dirname "$dst")"
+            cp -r "$src" "$name/$dst"
+          done < .github/package-files.txt
+
+          # 自检：镜像与仓库逐文件一致；包内版本号与目录名一致
+          diff -r scripts/quick_cut "$name/quick_cut"
+          diff script-opts/quick_cut.conf "$name/script-opts/quick_cut.conf"
+          grep -q "M.VERSION = \"${{ steps.ver.outputs.version }}\"" "$name/quick_cut/core/config.lua"
+          find "$name" -type f | sort
+
+      - name: 打包 7z
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq p7zip-full
+          name="quick_cut_v${{ steps.ver.outputs.version }}"
+          7z a -t7z -mx=9 -ms=on "$name.7z" "$name" > /dev/null
+          ls -l "$name.7z"
+
+      - name: 解包复核
+        run: |
+          set -euo pipefail
+          name="quick_cut_v${{ steps.ver.outputs.version }}"
+          rm -rf /tmp/unpack && mkdir -p /tmp/unpack
+          7z x -o/tmp/unpack "$name.7z" > /dev/null
+          diff -r "/tmp/unpack/$name" "$name"
+          echo "解包内容与镜像逐文件一致"
+
+      - name: 生成发布说明（提交正文 + 附件校验）
+        id: notes
+        run: |
+          set -euo pipefail
+          name="quick_cut_v${{ steps.ver.outputs.version }}"
+          git log -1 --pretty=%b > release-body.md
+          if [ -s release-body.md ]; then
+            # 正文取自本次提交说明；大小与 SHA-256 由 CI 现场计算，避免写死后与产物不符
+            {
+              cat release-body.md
+              echo
+              echo "---"
+              echo
+              printf '**附件**：%s.7z（%s 字节）\n\n' "$name" "$(stat -c%s "$name.7z")"
+              echo "**SHA-256**："
+              echo
+              echo '```'
+              sha256sum "$name.7z" | cut -d' ' -f1
+              echo '```'
+            } > release-body-full.md
+            echo "use_body=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "use_body=0" >> "$GITHUB_OUTPUT"
+          fi
+          tail -n 6 release-body-full.md 2>/dev/null || true
+
+      - name: 判断该版本是否已发布
+        id: rel
+        run: |
+          set -euo pipefail
+          tag="v${{ steps.ver.outputs.version }}"
+          # 用 git 查远端 tag：只读、不需要 gh 认证（早先用 gh release view 判断，未认证时会误判为"未发布"）
+          if git ls-remote --tags origin "refs/tags/$tag" | grep -q .; then
+            echo "exists=1" >> "$GITHUB_OUTPUT"
+            echo "::notice::$tag 已存在：本次只构建与自检，不覆盖已发布的正文与附件。"
+          else
+            echo "exists=0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 发布（正文 = 提交说明 + 校验）
+        if: steps.rel.outputs.exists == '0' && steps.notes.outputs.use_body == '1'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: QUICK CUT V${{ steps.ver.outputs.version }}
+          body_path: release-body-full.md
+          files: quick_cut_v*.7z
+          fail_on_unmatched_files: true
+
+      - name: 发布（提交无正文时自动生成）
+        if: steps.rel.outputs.exists == '0' && steps.notes.outputs.use_body == '0'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: QUICK CUT V${{ steps.ver.outputs.version }}
+          generate_release_notes: true
+          files: quick_cut_v*.7z
+          fail_on_unmatched_files: true
