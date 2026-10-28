@@ -1,10 +1,3 @@
--- quick_cut 模块化引导器（脚本包入口；版本单一来源：core/config.lua 的 M.VERSION）
--- mpv 加载 scripts/quick_cut/ 目录时把 main.lua 作为入口，因此无需再在 scripts/
--- 顶层放置 quick_cut.lua。模块按职责收拢到子目录：
---   core/   核心逻辑与领域模块（core/config/crop/editor/export/session/takeover/util/ui）
---   i18n/   语言包（i18n.lua 加载器 + zh_CN/en_US 语言包）
---   fonts/  图标字体（Quickcut_icons.ttf + 同目录的 Apache-2.0 许可声明）
--- 外观全部由 core/ui.lua 的内置常量决定。
 local mp = require "mp"
 local msg = require "mp.msg"
 local sep = package.config:sub(1,1)
@@ -17,7 +10,6 @@ local function join(...)
         if p == nil then p = "" end
         p = tostring(p)
         if p == "" then
-            -- 跳过空段
         elseif out == "" then
             out = p
         elseif out:sub(-1) == "/" or out:sub(-1) == "\\" then
@@ -26,15 +18,12 @@ local function join(...)
             out = out .. sep .. p
         end
     end
-    -- 统一分隔符，避免 module_dir 以 / 结尾、后续段用 sep 拼接出现混用
     out = out:gsub("[/\\]", sep)
     return out
 end
 
--- 脚本包目录 = 本文件所在目录（scripts/quick_cut/）
 local module_dir = dirname(debug.getinfo(1,"S").source or "")
 
--- package.path 加入核心逻辑目录与语言包目录，使 require "config"/"core"/"i18n" 等短名可解析
 package.path = join(module_dir,"core"..sep.."?.lua")..";"
     .. join(module_dir,"i18n"..sep.."?.lua")..";"
     .. join(module_dir,"?.lua")..";"

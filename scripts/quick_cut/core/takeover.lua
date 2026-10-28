@@ -1,4 +1,3 @@
--- quick_cut 原生 OSC / uosc 接管
 local mp = require "mp"
 local utils = require "mp.utils"
 local config = require "config"
@@ -10,18 +9,12 @@ local manager = {
     uosc_disabled = false,
 }
 
--- 只向 uosc 注册按钮的外形与动作，绝不改写用户的 uosc.conf。
--- 用户自己在 controls= 里加 button:quick_cut 即可，位置完全由用户决定——
--- 自动插入无法知道该放左组还是右组（uosc 的 controls= 是扁平列表，左右分组
--- 靠 space 撑开），硬插只会打乱用户已排好的布局。
 local BUTTON_NAME = "quick_cut"
 local BUTTON_ICON = "cut"
 local deps = {}
 
 function M.init(d)
     if d then for k, v in pairs(d) do deps[k] = v end end
-    -- 定义按钮（外观与点击行为）。用户没在 controls= 里加这个按钮时，
-    -- 这条 set-button 只是把定义挂在 uosc 里，不会凭空显示任何东西。
     local tooltip = (deps.L and deps.L("hint.studio_button_tooltip")) or "Quick Cut"
     mp.commandv("script-message-to", "uosc", "set-button", BUTTON_NAME, utils.format_json({
         icon = BUTTON_ICON,
@@ -63,8 +56,6 @@ function M.hide()
     set_native_osc_visibility("never")
 
     if opts.takeover_uosc then
-        -- uosc 支持的 API：在指定 owner 名下禁用元素。
-        -- 用同一 owner 发送空列表即可可靠地恢复这些元素。
         mp.commandv("script-message-to", "uosc", "disable-elements",
             "quick_cut", opts.uosc_takeover_elements)
         manager.uosc_disabled = true
@@ -90,7 +81,6 @@ function M.restore()
     manager.native_visibility = "auto"
 end
 
--- restore_player_osc 脚本消息：无条件恢复，不依赖接管状态。
 function M.force_restore()
     mp.commandv("script-message-to", "uosc", "disable-elements", "quick_cut", "")
     set_native_osc_visibility("auto")

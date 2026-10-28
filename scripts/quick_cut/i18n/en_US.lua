@@ -1,30 +1,26 @@
--- English locale (fallback)
--- This is the fallback locale: any key missing from another pack resolves here.
 return {
-    -- ===== Main panel buttons =====
     ["button.in"] = "In",
-    ["preset.section_mine_short"] = "Mine",   -- 窄尺寸短名
-    ["confirm.goal_short"] = "Goal",   -- 窄尺寸短名
-    ["confirm.preset_short"] = "Preset",   -- 窄尺寸短名
-    ["confirm.sec_extra_short"] = "Extra",   -- 窄尺寸短名
-    ["confirm.sec_format_short"] = "Format",   -- 窄尺寸短名
-    ["confirm.source_label_short"] = "Src",   -- 窄尺寸短名
-    ["confirm.mode_accurate_short"] = "Encode",   -- 窄尺寸短名
-    ["confirm.mode_fast_short"] = "Copy",   -- 窄尺寸短名
-    ["confirm.out_merged_short"] = "Merge",   -- 窄尺寸短名
-    ["confirm.out_separate_short"] = "Split",   -- 窄尺寸短名
-    ["confirm.outmode_short"] = "Output",   -- 窄尺寸短名
-    ["confirm.kind_short"] = "Type",   -- 窄尺寸短名
+    ["preset.section_mine_short"] = "Mine",
+    ["confirm.goal_short"] = "Goal",
+    ["confirm.preset_short"] = "Preset",
+    ["confirm.sec_extra_short"] = "Extra",
+    ["confirm.sec_format_short"] = "Format",
+    ["confirm.source_label_short"] = "Src",
+    ["confirm.mode_accurate_short"] = "Encode",
+    ["confirm.mode_fast_short"] = "Copy",
+    ["confirm.out_merged_short"] = "Merge",
+    ["confirm.out_separate_short"] = "Split",
+    ["confirm.outmode_short"] = "Output",
+    ["confirm.kind_short"] = "Type",
     ["button.out"] = "Out",
     ["button.split"] = "Split",
     ["button.crop"] = "Crop",
     ["button.add"] = "Add",
     ["button.save"] = "Save",
     ["button.delete"] = "Delete",
-    -- "Open output folder" on the export result card (the folder menu itself was removed)
     ["button.folder"] = "Open folder",
     ["button.segments"] = "Segs %d",
-    ["button.segments_short"] = "Segs",  -- 窄面板先丢数字时用（"片段 3" → "片段"）
+    ["button.segments_short"] = "Segs",
     ["modal.size_confirm_warn"] = "%s\n— press Enter to proceed with that size; type a new number and press Enter to change it; Esc returns to the panel",
     ["modal.size_confirm_detail"] = "Target %.0f MB is too small for a %.0f s clip: the estimated %s kbps is below this machine's floor of about %d kbps, so the picture will degrade badly (raise the size or shorten the clip)",
     ["modal.size_detail_low_source"] = "Target %.0f MB is too small for a %.0f s clip: the estimated %s kbps is only a fraction of the source bitrate (about %.0f kbps), roughly %.0f%%, so the picture will be clearly worse than the source (raise the size or shorten the clip)",
@@ -39,7 +35,6 @@ return {
     ["button.cancel"] = "Cancel",
     ["button.exit"] = "Exit",
 
-    -- ===== Main panel tooltips =====
     ["tip.in"] = "Set in-point ([)",
     ["tip.out"] = "Set out-point (])",
     ["tip.split"] = "Split at playhead (S)",
@@ -58,7 +53,6 @@ return {
     ["tip.cancel_edit"] = "Cancel segment edit (Esc)",
     ["tip.exit"] = "Leave editor (Q/Esc)",
 
-    -- ===== Crop window =====
     ["crop.title"] = "Crop",
     ["crop.free"] = "Free",
     ["crop.close"] = "Off",
@@ -78,7 +72,6 @@ return {
     ["crop.need_preset"] = "Choose an aspect ratio first",
     ["crop.applied"] = "Crop %s · area %dx%d",
 
-    -- ===== Confirm panel =====
     ["confirm.title_export"] = "Output settings",
     ["confirm.title_merge"] = "Merge output settings",
     ["confirm.kind"] = "Type",
@@ -101,19 +94,26 @@ return {
     ["confirm.kind_audio"] = "Audio",
     ["confirm.kind_animated"] = "GIF",
     ["confirm.kind_image"] = "Image",
-  -- Subtitle export (kind "subtitle": exports the currently selected subtitle track)
   ["confirm.kind_subtitle"] = "Subtitle",
   ["param.subtitle_codec"] = "Subtitle format",
-  -- Image export modes (frame sequence / keyframes / contact sheet)
   ["param.image_mode"] = "Image mode",
   ["param.tile_grid"] = "Tile grid",
+  ["param.image_width"] = "Width",
   ["value.img_sequence"] = "Frame sequence",
   ["value.img_keyframes"] = "Keyframes",
   ["value.img_tile"] = "Contact sheet",
   ["value.img_single"] = "Single frame (one per segment)",
+  ["value.img_current"] = "Current frame (playhead)",
+  ["param.image_mode.desc"] = "Current frame exports only the playhead; single frame takes each segment's start; a frame sequence yields duration x the animated fps",
+  ["param.animated_fps.desc"] = "Frame sequence only: frames per second (this also sets how many images you get)",
+  ["param.tile_grid.desc"] = "Contact sheet only: columns x rows",
+  ["param.keyframe_stride.desc"] = "Keyframes only: keep one of every N keyframes",
+  ["param.image_width.desc"] = "Width for image export and the F key; 0 = original size (best quality)",
+  ["param.image_quality.desc"] = "Only applies to lossy formats (jpg / webp / avif / jxl): lower is better, 2 = best; png / tiff are lossless and ignore it",
   ["summary.image_tile"] = "Sheet %s · %d×%d · %s",
   ["summary.image_keyframes"] = "Keyframes %s · %s",
   ["summary.image_single"] = "Single frame %s · %s",
+  ["summary.image_current"] = "Current frame %s · %s",
   ["param.keyframe_stride"] = "Keyframe step",
   ["param.keyframe_limit"] = "Max frames",
   ["value.all_keyframes"] = "All",
@@ -121,11 +121,9 @@ return {
   ["summary.kf_stride"] = "1 of every %d",
   ["summary.kf_total"] = "%d keyframes total",
   ["hint.counting_keyframes"] = "Counting keyframes…",
-  -- Auto processing (deinterlace / black-bar crop / loudness normalization): probed before export
   ["param.auto_deinterlace"] = "Auto deinterlace",
   ["param.auto_crop_black"] = "Auto crop bars",
   ["param.normalize_audio"] = "Normalize loudness",
-  -- Trim silence (tuning lives in conf: silence_db / silence_min / silence_pad)
   ["param.remove_silence"] = "Trim silence",
   ["hint.analyzing_silence"] = "Analyzing silence (audio only)...",
   ["hint.silence_removed"] = "Removed %d silent range(s) (%.1f s total), keeping %d part(s)",
@@ -145,16 +143,15 @@ return {
   ["hint.loudness_applied"] = "Loudness normalization: source %s → %s LUFS",
   ["hint.loudness_none"] = "No usable loudness measurement; normalization skipped",
   ["hint.loudness_needs_recoding"] = "Loudness normalization needs audio re-encoding; audio codec changed from copy to aac",
-  -- Remove cut offset
   ["param.smart_cut"] = "Remove cut offset",
   ["hint.analyzing_keyframes"] = "Reading keyframe positions…",
   ["hint.analyzing_video_stream"] = "Reading source video parameters…",
+  ["hint.analysis_skipped_image"] = "Image export needs no source analysis, skipped: %s",
   ["hint.smart_cut_applied"] = 'Remove cut offset: %s s re-encoded before the in-point, rest copied',
   ["hint.smart_cut_fallback"] = 'Remove cut offset not applied (%s); this segment uses the regular path',
   ["hint.smart_cut_shift_note"] = 'Note: Remove cut offset did not apply, so fast copy snapped the start back to the previous keyframe and the content shifts earlier (use Re-encode for an exact in-point)',
   ["hint.smart_cut_needs_fast"] = 'Remove cut offset needs fast copy; this run re-encodes everything (switch back to fast copy to speed up)',
   ["hint.smart_cut_video_only"] = 'Remove cut offset only applies to video exports',
-  -- Merge + Remove cut offset: decided for the whole queue; when it does not apply, say which setting blocks it
   ["hint.smart_cut_merge_blocked"] = 'Remove cut offset in a merged export needs segments that need no processing: %s is active, so the whole file is re-encoded as usual',
   ["hint.smart_cut_merge_crop"] = "manual crop",
   ["hint.smart_cut_merge_transform"] = "resolution / frame rate scaling",
@@ -163,9 +160,7 @@ return {
   ["hint.smart_cut_merge_bitrate"] = "bitrate mode (the copied tail keeps the source bitrate, so the target bitrate cannot be met)",
   ["hint.smart_cut_merge_segment"] = 'Segment %d cannot use Remove cut offset (%s), and a merge requires identical parameters across segments, so the whole file is re-encoded',
   ["hint.smart_cut_merge_failed"] = 'Remove cut offset failed on segment %d: a merge requires identical parameters across parts, so this segment cannot fall back alone; the task was stopped',
-  -- Container switching (remux): the target container cannot hold the source codecs, so Re-encode is used
   ["hint.container_needs_accurate"] = "The target container %s cannot hold the source %s; this export re-encodes (use mkv for a lossless, seconds-long remux)",
-  -- Re-encode + audio copy: the source audio cannot go into the target container (e.g. opus in ts becomes an unreadable private stream)
   ["hint.audio_copy_needs_recoding"] = "The source audio %s cannot go into %s; audio is re-encoded as %s (it was set to copy)",
     ["hint.video_copy_needs_recoding"] = "Source video %s cannot go into %s; re-encoding with %s (was copy)",
   ["smart.reason_no_keyframes"] = "keyframe index unavailable",
@@ -182,6 +177,8 @@ return {
   ["hint.no_subtitle_track"] = "No subtitle track to export (select an external subtitle in mpv first)",
   ["hint.subtitle_no_merge"] = "Subtitle export cannot merge multiple segments (subtitle timelines cannot be concatenated); uncheck merge or keep a single segment",
   ["hint.image_no_merge"] = "Image sequences/sheets cannot be merged into one file; use per-segment export",
+  ["hint.image_need_segments"] = "Mark at least one segment for image export; the whole file would produce far too many images",
+    ["hint.image_sequence_many"] = "Frame sequence would export about %s images (selected duration × fps); shorten the selection or lower the frame rate",
     ["confirm.out_separate"] = "Split output",
     ["confirm.out_merged"] = "Merged output",
     ["confirm.out_separate_tip"] = "Export each segment as a separate file",
@@ -217,7 +214,6 @@ return {
     ["confirm.go"] = "Confirm",
     ["confirm.go_tip"] = "Start the task",
 
-    -- ===== Parameter names =====
     ["param.container"] = "Container",
     ["param.video_codec"] = "Video codec",
     ["param.preset"] = "Preset",
@@ -242,7 +238,6 @@ return {
     ["param.audio_sample_rate"] = "Sample rate",
     ["param.audio_channels"] = "Channels",
 
-    -- ===== Parameter value display =====
     ["value.on"] = "On",
     ["value.off"] = "Off",
     ["value.copy"] = "Copy",
@@ -262,7 +257,6 @@ return {
     ["value.no_bitrate"] = "unset",
     ["value.fps"] = "%s fps",
 
-    -- ===== Summary =====
     ["summary.animated"] = "GIF %s · %s fps · %s · %s",
     ["summary.audio"] = "Audio only %s · %s%s%s",
     ["summary.image"] = "Image sequence %s · %s fps · %s",
@@ -274,14 +268,10 @@ return {
     ["summary.no_crop"] = "no crop",
     ["summary.custom_crop"] = "custom crop",
 
-    -- ===== Common =====
     ["common.custom"] = "Custom…",
     ["common.seconds"] = "s",
     ["value.auto"] = "auto",
 
-    -- ===== Segment list (migrated from the old L table) =====
-    -- modal.copy / modal.encode have no callers left (mode names go through
-    -- confirm.mode_fast / confirm.mode_accurate); kept only for key parity of the L adapter.
     ["modal.copy"] = "Fast copy",
     ["modal.encode"] = "Re-encode",
     ["modal.segments"] = "Segments",
@@ -295,7 +285,6 @@ return {
     ["modal.merge"] = "Merge",
     ["modal.reset"] = "Reset",
 
-    -- ===== Hints =====
     ["hint.in"] = "In-point: %s",
     ["hint.out"] = "Out-point: %s",
     ["hint.in_moved"] = "In-point moved",
@@ -341,7 +330,6 @@ return {
     ["hint.hud_hidden"] = "Panel & timeline hidden (press again to bring back)",
     ["hint.deck_shown"] = "Button panel expanded",
     ["hint.deck_hidden"] = "Button panel collapsed (timeline stays usable; press again to expand)",
-    -- ===== Key reference =====
     ["help.title"] = "Key reference",
     ["help.close_hint"] = "? toggle · Esc close · click anywhere to close",
     ["help.pause"] = "Play / pause",
@@ -365,7 +353,6 @@ return {
     ["help.edit_time"] = "Edit segment times",
     ["help.kf"] = "Jump to prev / next keyframe",
     ["help.help"] = "This overlay",
-    -- Key cheatsheet for the export confirmation panel (it had none before)
     ["help.confirm_activate"] = "activate the focused item (selects the option when a dropdown is open)",
     ["help.focus_next"] = "next focus",
     ["help.focus_prev"] = "previous focus",
@@ -394,7 +381,6 @@ return {
     ["hint.wave_on"] = "Timeline waveform: on",
     ["hint.wave_off"] = "Timeline waveform: off",
     ["hint.wave_failed"] = "Waveform generation failed (no audio track?), waveform turned off",
-    -- ===== Playback range (preview / play-all merged into the selection) =====
     ["hint.range_multi"] = "Playback range: %d segment(s), played in order",
     ["hint.range_cleared"] = "Left the playback range (free playback)",
     ["hint.select_single_first"] = "Select a single segment first",
@@ -414,7 +400,6 @@ return {
     ["hint.job_done_title"] = "Export finished",
     ["hint.job_done_stat_short"] = "%d / %d",
     ["hint.job_eta"] = "%s left",
-    -- ===== Optimize goals =====
     ["goal.quality"] = "Best quality",
     ["goal.speed"] = "Fastest",
     ["goal.lossless"] = "Minimal loss",
@@ -506,7 +491,6 @@ return {
     ["preset.high"] = "High quality",
     ["preset.archive"] = "Archive",
 
-    -- ===== Segment editing =====
     ["hint.need_both_marks"] = "Set both in and out points",
     ["hint.overlap"] = "Overlaps %d existing segment(s)",
     ["hint.edit_cancelled"] = "Segment edit cancelled",
@@ -547,7 +531,6 @@ return {
     ["hint.selected_in"] = "In-point set: %s",
     ["hint.no_custom_input"] = "Custom input needs mpv 0.38+",
 
-    -- ===== Task status & export =====
     ["hint.stopping_job"] = "Stopping export task...",
     ["hint.job_merge"] = "Merging %d/%d",
     ["hint.job_export"] = "Exporting %d/%d",
@@ -580,11 +563,7 @@ return {
     ["hint.concat_failed"] = "Cannot create concat list",
     ["hint.diag_note"] = "\ndiag: ",
     ["hint.temp_missing"] = "Temp segment missing or empty",
-    ["hint.task_cancelled"] = "Task cancelled",
-    ["hint.missing_video_stream"] = "Expected video stream missing",
-    ["hint.missing_audio_stream"] = "Expected audio stream missing",
 
-    -- ===== Crop editing =====
     ["hint.crop_requires_precise"] = "Fast copy can't be used with crop; use Re-encode",
     ["hint.speed_requires_precise"] = "Fast copy can't be used with speed change; use Re-encode",
     ["hint.crop_no_size"] = "Cannot read video size",
@@ -606,7 +585,6 @@ return {
     ["hint.crop_preview"] = "Crop preview %dx%d",
     ["hint.crop_editing"] = "Crop editing %dx%d · arrows to move/resize · drag · h hide/show panel · Enter apply",
 
-    -- ===== Dropdown overlay & segment list =====
     ["hint.current_value"] = "current",
     ["hint.select_option"] = "Select %s",
     ["hint.scroll_more"] = "Scroll for more",
@@ -627,7 +605,6 @@ return {
     ["tip.disabled_click"] = "Disabled; click to enable",
     ["tip.close_modal"] = "Close [Esc]",
 
-    -- ===== Task stages =====
     ["stage.preparing"] = "Preparing",
     ["stage.building"] = "Building args",
     ["stage.exporting"] = "Exporting",
@@ -638,6 +615,5 @@ return {
     ["stage.stopping"] = "Stopping",
     ["stage.running"] = "Running",
 
-    -- ===== Summary extras =====
     ["summary.custom_args"] = "custom args",
 }

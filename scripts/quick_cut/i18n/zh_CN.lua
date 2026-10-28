@@ -1,30 +1,26 @@
--- 简体中文语言包
--- 键缺失时会回落到 en_US，因此这里只需覆盖"中文有对应说法"的项。
 return {
-    -- ===== 主面板按钮 =====
     ["button.in"] = "入点",
-    ["preset.section_mine_short"] = "我的",   -- 窄尺寸短名
-    ["confirm.goal_short"] = "优化",   -- 窄尺寸短名
-    ["confirm.preset_short"] = "预设",   -- 窄尺寸短名
-    ["confirm.sec_extra_short"] = "附加",   -- 窄尺寸短名
-    ["confirm.sec_format_short"] = "格式",   -- 窄尺寸短名
-    ["confirm.source_label_short"] = "源",   -- 窄尺寸短名
-    ["confirm.mode_accurate_short"] = "编码",   -- 窄尺寸短名
-    ["confirm.mode_fast_short"] = "复制",   -- 窄尺寸短名
-    ["confirm.out_merged_short"] = "合并",   -- 窄尺寸短名
-    ["confirm.out_separate_short"] = "分片",   -- 窄尺寸短名
-    ["confirm.outmode_short"] = "输出",   -- 窄尺寸短名
-    ["confirm.kind_short"] = "类型",   -- 窄尺寸短名
+    ["preset.section_mine_short"] = "我的",
+    ["confirm.goal_short"] = "优化",
+    ["confirm.preset_short"] = "预设",
+    ["confirm.sec_extra_short"] = "附加",
+    ["confirm.sec_format_short"] = "格式",
+    ["confirm.source_label_short"] = "源",
+    ["confirm.mode_accurate_short"] = "编码",
+    ["confirm.mode_fast_short"] = "复制",
+    ["confirm.out_merged_short"] = "合并",
+    ["confirm.out_separate_short"] = "分片",
+    ["confirm.outmode_short"] = "输出",
+    ["confirm.kind_short"] = "类型",
     ["button.out"] = "出点",
     ["button.split"] = "分割",
     ["button.crop"] = "裁剪",
     ["button.add"] = "添加",
     ["button.save"] = "保存",
     ["button.delete"] = "删除",
-    -- 导出完成卡上的"打开输出目录"（原目录选单已移除，此键只服务这一个按钮）
     ["button.folder"] = "打开输出目录",
     ["button.segments"] = "片段 %d",
-    ["button.segments_short"] = "片段",  -- 窄面板先丢数字时用（"片段 3" → "片段"）
+    ["button.segments_short"] = "片段",
     ["modal.size_confirm_warn"] = "%s\n—— 确认请按 Enter（按该体积导出）；想改数值请直接输入后回车；Esc 返回面板",
     ["modal.size_confirm_detail"] = "目标体积 %.0f MB 对 %.0f s 的片段偏小：预估视频 %s kbps 低于本机该分辨率下限约 %d kbps，画面会明显劣化（建议加大体积或缩短片段）",
     ["modal.size_detail_low_source"] = "目标体积 %.0f MB 对 %.0f s 的片段偏小：预估视频 %s kbps，不足源文件码率（约 %.0f kbps）的 %.0f%%，画面会比源文件明显劣化（建议加大体积或缩短片段）",
@@ -39,7 +35,6 @@ return {
     ["button.cancel"] = "取消",
     ["button.exit"] = "退出",
 
-    -- ===== 主面板按钮提示 =====
     ["tip.in"] = "设置入点 ([)",
     ["tip.out"] = "设置出点 (])",
     ["tip.split"] = "在播放头位置分割 (S)",
@@ -58,7 +53,6 @@ return {
     ["tip.cancel_edit"] = "取消片段编辑 (Esc)",
     ["tip.exit"] = "退出剪辑台 (Q/Esc)",
 
-    -- ===== 裁剪窗口 =====
     ["crop.title"] = "画面裁剪",
     ["crop.free"] = "自由",
     ["crop.close"] = "关闭",
@@ -78,7 +72,6 @@ return {
     ["crop.need_preset"] = "请先选择裁剪比例",
     ["crop.applied"] = "画面裁剪 %s · 区域 %dx%d",
 
-    -- ===== 确认面板 =====
     ["confirm.title_export"] = "输出设置",
     ["confirm.title_merge"] = "合并输出设置",
     ["confirm.kind"] = "导出类型",
@@ -101,19 +94,26 @@ return {
     ["confirm.kind_audio"] = "音频",
     ["confirm.kind_animated"] = "动图",
     ["confirm.kind_image"] = "图片",
-  -- 字幕导出（导出类型「字幕」：只导出当前选中的字幕轨）
   ["confirm.kind_subtitle"] = "字幕",
   ["param.subtitle_codec"] = "字幕格式",
-  -- 图片导出模式（逐帧序列 / 关键帧 / 拼图总览）
   ["param.image_mode"] = "图片模式",
   ["param.tile_grid"] = "拼图网格",
+  ["param.image_width"] = "宽度",
   ["value.img_sequence"] = "逐帧序列",
   ["value.img_keyframes"] = "关键帧",
   ["value.img_tile"] = "拼图总览",
   ["value.img_single"] = "单帧（每段一张）",
+  ["value.img_current"] = "当前帧（播放头）",
+  ["param.image_mode.desc"] = "当前帧只导播放头这一帧；单帧是每个片段起始帧各一张；逐帧序列的张数 = 选中时长 × 每秒帧数（动图帧率那一项）",
+  ["param.animated_fps.desc"] = "仅逐帧序列使用：每秒抽几帧（这个值同时决定图片序列的张数）",
+  ["param.tile_grid.desc"] = "仅拼图总览使用：成图的行列数",
+  ["param.keyframe_stride.desc"] = "仅关键帧使用：每 N 个关键帧取一张",
+  ["param.image_width.desc"] = "图片导出与 F 存帧的宽度；0 = 保持原尺寸（最高质量）",
+  ["param.image_quality.desc"] = "仅有损格式（jpg / webp / avif / jxl）生效：数值越小质量越高，2 = 最高；png / tiff 无损，不受此项影响",
   ["summary.image_tile"] = "拼图 %s · %d×%d · %s",
   ["summary.image_keyframes"] = "关键帧 %s · %s",
   ["summary.image_single"] = "单帧 %s · %s",
+  ["summary.image_current"] = "当前帧 %s · %s",
   ["param.keyframe_stride"] = "关键帧步长",
   ["param.keyframe_limit"] = "张数上限",
   ["value.all_keyframes"] = "全取",
@@ -121,11 +121,9 @@ return {
   ["summary.kf_stride"] = "每 %d 个取 1",
   ["summary.kf_total"] = "共 %d 个关键帧",
   ["hint.counting_keyframes"] = "正在统计关键帧数量…",
-  -- 自动处理（去隔行 / 去黑边 / 音量归一化）：导出前异步探测
   ["param.auto_deinterlace"] = "自动去隔行",
   ["param.auto_crop_black"] = "自动去黑边",
   ["param.normalize_audio"] = "音量归一化",
-  -- 去除静音段（细节参数在 conf：silence_db / silence_min / silence_pad）
   ["param.remove_silence"] = "去除静音段",
   ["hint.analyzing_silence"] = "正在分析静音段（只解码音频）…",
   ["hint.silence_removed"] = "已去除 %d 段静音（共 %.1f 秒），保留 %d 段",
@@ -145,18 +143,15 @@ return {
   ["hint.loudness_applied"] = "音量归一化：源响度 %s → %s LUFS",
   ["hint.loudness_none"] = "音量测量无有效结果，已跳过归一化",
   ["hint.loudness_needs_recoding"] = "音量归一化需要重编码音频，已把音频编码从 copy 改为 aac",
-  -- 智能无损切割
   ["param.smart_cut"] = "消除切点偏移",
   ["hint.analyzing_keyframes"] = "正在读取关键帧位置…",
   ["hint.analyzing_video_stream"] = "正在读取源视频参数…",
+  ["hint.analysis_skipped_image"] = "图片导出不需要源分析，已跳过：%s",
   ["hint.smart_cut_applied"] = "消除切点偏移：入点前 %s 秒重编码，其余流复制",
   ["hint.smart_cut_fallback"] = "消除切点偏移未生效（%s），该段按常规方式导出",
-  -- 追加在完成通知正文里：那条 4 秒的 error 提示会被"导出完成"瞬间覆盖（实测导出一段
-  -- 3 秒片段只要 0.07 秒），错位结论必须另有一处留痕
   ["hint.smart_cut_shift_note"] = "注意：消除切点偏移未生效，起点已回退到关键帧，成品内容整体前移（改用重新编码可避免）",
   ["hint.smart_cut_needs_fast"] = "消除切点偏移只在快速复制下生效，本次整段重编码（切回快速复制可提速）",
   ["hint.smart_cut_video_only"] = "消除切点偏移只用于视频类型导出",
-  -- 合并 + 消除切点偏移：整队列判定，不适用时说清是哪个设置挡住的（不再静默忽略开关）
   ["hint.smart_cut_merge_blocked"] = "合并导出里「消除切点偏移」要求整段无需处理：当前启用了%s，已按常规整段重编码",
   ["hint.smart_cut_merge_crop"] = "手动裁剪",
   ["hint.smart_cut_merge_transform"] = "分辨率 / 帧率缩放",
@@ -165,9 +160,7 @@ return {
   ["hint.smart_cut_merge_bitrate"] = "码率模式（尾部照抄源码率，给不出目标码率）",
   ["hint.smart_cut_merge_segment"] = "第 %d 段无法消除切点偏移（%s），而合并要求各段参数一致，已整段重编码",
   ["hint.smart_cut_merge_failed"] = "第 %d 段的「消除切点偏移」失败：合并要求各分片参数一致，无法只回退这一段，任务已终止",
-  -- 换容器（remux）：快速复制下目标容器装不下源编码时退回重新编码
   ["hint.container_needs_accurate"] = "目标容器 %s 装不下源的 %s，本次按重新编码处理（换 mkv 可无损秒级完成）",
-  -- 重新编码 + 音频 copy：源音频装不进目标容器（如 opus → ts 会变成读不出的私有流）时改编码
   ["hint.audio_copy_needs_recoding"] = "源音频 %s 装不进 %s，音频已改用 %s 重新编码（原设定为 copy）",
     ["hint.video_copy_needs_recoding"] = "源视频 %s 装不进 %s，已改用 %s 重新编码（原设定为 copy）",
   ["smart.reason_no_keyframes"] = "关键帧索引不可用",
@@ -177,15 +170,15 @@ return {
   ["smart.reason_audio_codec"] = "源音频编码不支持重编码（aac / mp3 / opus / flac / ac3 / eac3）",
   ["smart.reason_audio_mismatch"] = "音频设置与源编码不一致（头部必须按源编码重编码才能与尾部缝合）：把「音频编码」改成与源相同或 copy 即可启用",
   ["smart.reason_head_too_long"] = "入点到下一个关键帧超过上限",
-  -- 与上一条不同的原因：整段没跨过任何关键帧 ⇒ 没有可复制的尾部
   ["smart.reason_single_gop"] = "整段落在同一个关键帧区间内，没有可复制的尾部（快速复制会把起点回退到该关键帧，画面内容会整体前移，建议改用重新编码或先用关键帧对齐入点）",
-  -- 图片/动图/音频导出不适用：消除切点偏移产出的是视频片段，中间文件会改变关键帧结构
   ["smart.reason_non_video"] = "消除切点偏移只用于视频类型导出",
   ["value.copy_raw"] = "原样复制（mkv）",
   ["summary.subtitle"] = "字幕轨 %s",
   ["hint.no_subtitle_track"] = "源里没有可导出的字幕轨（外挂字幕需先在 mpv 里选中）",
   ["hint.subtitle_no_merge"] = "字幕导出不支持合并多个片段（字幕时间轴无法拼接），请取消合并或只保留一个片段",
   ["hint.image_no_merge"] = "图片序列/拼图无法合并为一个文件，请改用单独导出",
+  ["hint.image_need_segments"] = "图片导出请先标记片段：整片会产出数量失控的图片",
+    ["hint.image_sequence_many"] = "逐帧序列将导出约 %s 张图（选中时长 × 帧率），建议缩短选中范围或降低帧率",
     ["confirm.out_separate"] = "分片输出",
     ["confirm.out_merged"] = "合并输出",
     ["confirm.out_separate_tip"] = "每个片段导出为独立文件",
@@ -221,7 +214,6 @@ return {
     ["confirm.go"] = "确认",
     ["confirm.go_tip"] = "开始任务",
 
-    -- ===== 参数名 =====
     ["param.container"] = "容器",
     ["param.video_codec"] = "视频编码",
     ["param.preset"] = "编码预设",
@@ -246,13 +238,10 @@ return {
     ["param.audio_sample_rate"] = "采样率",
     ["param.audio_channels"] = "声道",
 
-    -- ===== 参数值显示 =====
     ["value.on"] = "开",
     ["value.off"] = "关",
     ["value.copy"] = "复制",
     ["value.no_audio"] = "无音频",
-    -- 「无音频」下这两个开关没有意义：apply_param_value 会**拒绝开启**（不是开了不生效），
-    -- 选 none 时还会把它们自动复位 —— 文案必须说"改回去"，否则用户会以为开关坏了
     ["hint.audio_off_conflict"] = "已选择「无音频」：先改音频编码再开启此项",
     ["value.enable"] = "开启",
     ["value.disable"] = "关闭",
@@ -268,7 +257,6 @@ return {
     ["value.no_bitrate"] = "未设码率",
     ["value.fps"] = "%s fps",
 
-    -- ===== 摘要 =====
     ["summary.animated"] = "动图 %s · %s fps · %s · %s",
     ["summary.audio"] = "仅音频 %s · %s%s%s",
     ["summary.image"] = "图片序列 %s · %s fps · %s",
@@ -280,14 +268,10 @@ return {
     ["summary.no_crop"] = "不裁剪",
     ["summary.custom_crop"] = "自定义裁剪",
 
-    -- ===== 通用 =====
     ["common.custom"] = "自定义…",
     ["common.seconds"] = "秒",
     ["value.auto"] = "自动",
 
-    -- ===== 片段列表（旧 L 表迁移）=====
-    -- 注：modal.copy / modal.encode 已无调用方（模式名统一走 confirm.mode_fast / confirm.mode_accurate），
-    -- 保留只为不破坏 L 适配器（core.lua:75 的 L.copy 点号访问）的键值完整性。
     ["modal.copy"] = "快速复制",
     ["modal.encode"] = "重新编码",
     ["modal.segments"] = "片段",
@@ -301,7 +285,6 @@ return {
     ["modal.merge"] = "合并",
     ["modal.reset"] = "清空",
 
-    -- ===== 操作提示 =====
     ["hint.in"] = "入点：%s",
     ["hint.out"] = "出点：%s",
     ["hint.in_moved"] = "已移动入点",
@@ -347,7 +330,6 @@ return {
     ["hint.hud_hidden"] = "已隐藏主面板与时间轴（再按一次呼出）",
     ["hint.deck_shown"] = "已展开按钮面板",
     ["hint.deck_hidden"] = "已收起按钮面板（时间轴仍可用，再按一次展开）",
-    -- ===== 键位速查 =====
     ["help.title"] = "键位速查",
     ["help.close_hint"] = "? 切换 · Esc 关闭 · 点击任意处关闭",
     ["help.pause"] = "播放 / 暂停",
@@ -371,7 +353,6 @@ return {
     ["help.edit_time"] = "编辑片段时间码",
     ["help.kf"] = "跳到上 / 下一个关键帧",
     ["help.help"] = "本速查浮层",
-    -- 导出确认面板的速查
     ["help.confirm_activate"] = "激活焦点（下拉展开时选中该项）",
     ["help.focus_next"] = "下一个焦点",
     ["help.focus_prev"] = "上一个焦点",
@@ -400,7 +381,6 @@ return {
     ["hint.wave_on"] = "时间轴波形：开",
     ["hint.wave_off"] = "时间轴波形：关",
     ["hint.wave_failed"] = "波形生成失败（该文件可能没有音轨），已关闭波形",
-    -- ===== 播放范围（原「预览」「连播」两个开关已并入选择）=====
     ["hint.range_multi"] = "播放范围：%d 段（按序播放）",
     ["hint.range_cleared"] = "已退出播放范围（自由播放）",
     ["hint.select_single_first"] = "该操作需要先选中单个片段",
@@ -420,7 +400,6 @@ return {
     ["hint.job_done_title"] = "导出完成",
     ["hint.job_done_stat_short"] = "%d / %d",
     ["hint.job_eta"] = "剩余 %s",
-    -- ===== 优化目标 =====
     ["goal.quality"] = "画质优先",
     ["goal.speed"] = "速度优先",
     ["goal.lossless"] = "损失最小",
@@ -512,7 +491,6 @@ return {
     ["preset.high"] = "高质量",
     ["preset.archive"] = "归档",
 
-    -- ===== 片段编辑 =====
     ["hint.need_both_marks"] = "请同时设置入点和出点",
     ["hint.overlap"] = "提示：该片段与 %d 个已有片段重叠",
     ["hint.edit_cancelled"] = "已取消片段编辑",
@@ -553,7 +531,6 @@ return {
     ["hint.selected_in"] = "已选择入点：%s",
     ["hint.no_custom_input"] = "当前 mpv 不支持自定义输入（需 mpv 0.38+）",
 
-    -- ===== 任务状态与导出 =====
     ["hint.stopping_job"] = "正在停止导出任务...",
     ["hint.job_merge"] = "合并 %d/%d",
     ["hint.job_export"] = "导出 %d/%d",
@@ -587,11 +564,7 @@ return {
     ["hint.concat_failed"] = "无法创建 concat 列表",
     ["hint.diag_note"] = "\n诊断：",
     ["hint.temp_missing"] = "临时片段不存在或为空",
-    ["hint.task_cancelled"] = "任务已取消",
-    ["hint.missing_video_stream"] = "缺少预期视频流",
-    ["hint.missing_audio_stream"] = "缺少预期音频流",
 
-    -- ===== 裁剪编辑 =====
     ["hint.crop_requires_precise"] = "启用裁剪后不能用快速复制；请使用重新编码",
     ["hint.speed_requires_precise"] = "变速不能用快速复制；请使用重新编码",
     ["hint.crop_no_size"] = "无法读取视频尺寸",
@@ -613,7 +586,6 @@ return {
     ["hint.crop_preview"] = "裁剪预览 %dx%d",
     ["hint.crop_editing"] = "裁剪编辑 %dx%d · 方向键移动/缩放 · 鼠标拖动 · h 收起/展开面板 · Enter 确认",
 
-    -- ===== 下拉浮层与片段列表 =====
     ["hint.current_value"] = "当前值",
     ["hint.select_option"] = "选择 %s",
     ["hint.scroll_more"] = "滚轮滚动查看更多",
@@ -634,7 +606,6 @@ return {
     ["tip.disabled_click"] = "当前已停用，点击启用",
     ["tip.close_modal"] = "关闭 [Esc]",
 
-    -- ===== 任务阶段 =====
     ["stage.preparing"] = "准备",
     ["stage.building"] = "构建参数",
     ["stage.exporting"] = "导出",
@@ -645,6 +616,5 @@ return {
     ["stage.stopping"] = "停止中",
     ["stage.running"] = "运行中",
 
-    -- ===== 摘要补充 =====
     ["summary.custom_args"] = "自定义参数",
 }

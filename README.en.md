@@ -1,5 +1,5 @@
 <div align="center">
-  <p><img src="preview/00-hero.svg" alt="Quick Cut — Edit while you watch."></p>
+  <p><img src="preview/00-banner.webp" alt="Quick Cut — Edit while you watch."></p>
   <h1>Quick Cut</h1>
   <p><strong>Edit while you watch. Lightweight, lightning-fast, and seamless mpv video editing.</strong></p>
   <p>No material imports, no software switching, and no manual FFmpeg commands.<br>Cut segments · crop frames · create GIFs · extract audio · convert formats · change speed — all inside your mpv player window.</p>
@@ -92,9 +92,11 @@ Without ffmpeg the unsupported items are greyed out with a stated reason (see th
 
 Install ffmpeg when you want the full feature set; the script prefers it automatically. An mpv instance that is already running must be restarted before it re-detects ffmpeg.
 
+The backup backend spawns one mpv encoder per segment: for video it starts **minimised**, with no border, OSC or progress bar, and it does not grab keyboard or mouse input; audio-only exports need no picture at all and run **without a window**. (mpv's encoding mode requires a video output, so the video case cannot be fully window-less.)
+
 ### Get it
 
-- **Release package**: grab the latest `quick_cut_v1.0.7z` from [Releases](https://github.com/wha4up/quick_cut/releases) and unpack it — you get the `quick_cut` folder, `script-opts/quick_cut.conf`, and three license files (`LICENSE`, `LICENSES/Apache-2.0.txt`, `权利声明.md`). The archive carries only what is needed to run; docs and screenshots live in the repo;
+- **Release package**: grab the `.7z` attached to the latest [Releases](https://github.com/wha4up/quick_cut/releases) entry and unpack it — you get the `quick_cut` folder, `script-opts/quick_cut.conf`, and three license files (`LICENSE`, `LICENSES/Apache-2.0.txt`, `权利声明.md`). The archive carries only what is needed to run; docs and screenshots live in the repo;
 - **Clone the repo**: take the `scripts/quick_cut` folder (`release/` is not in the repo — it is just the packaging mirror).
 
 ### Install the script
@@ -162,6 +164,8 @@ Arranging segments and previewing them in the editor.
 
 Progress is recorded per file in `quick_cut_sessions.json` next to the script and restored the next time you open the same file; set `resume_session` to `no` to turn it off. This is the script's own state record, unrelated to exports — see the [FAQ](docs/faq.en.md) for where it lives and how to clear it.
 
+If the source duration no longer matches the record (re-encoded or re-cut file), the restore is refused with a notice and the stored entry is **kept**; it only disappears when you clear the marks (`x`) or delete the JSON yourself.
+
 ---
 
 ## Export
@@ -227,18 +231,21 @@ The source is probed asynchronously before export; a probe failure only logs a w
 
 Under fast copy only **Fast start** and **Remove cut offset** remain: every other toggle introduces a filter, and filters require re-encoding.
 
+These toggles can also be preset in `quick_cut.conf` (`auto_deinterlace` / `auto_crop_black` / `normalize_audio` / `remove_silence`); the ones set to `yes` are no longer reset by the "Original" preset at startup and behave exactly like switching them on in the panel.
+
 ### Presets and target size
 
 The menu at the bottom left retunes the whole parameter set at once; the two entry points are mutually exclusive:
 
-- **Presets** — built-in "Original" (follows the source file) / "Web" / "High quality" / "Archive", plus custom presets in the conf (e.g. NVENC); you can also save the current parameters as your own preset.
+- **Presets** — built-in "Original" (follows the source file) / "Web" / "High quality" / "Archive", plus custom presets in the conf (e.g. NVENC); you can also save the current parameters as your own preset (frame rate included, and restored with it).
 - **Optimisation goals** — quality / speed / smallest loss / target size. After choosing a target size, enter the size in MB (default 50): the script derives the bitrate from the **total duration** of the selection (`size × 8388.608 ÷ duration`, minus roughly 2% + 0.5 MiB of container overhead) and forces re-encode. A target that is too small (below the floor for that resolution, minimum 16 kbps), above the source bitrate or far outside the sensible range is explained and pre-filled — press ENTER once more to proceed.
 
 ### Output naming
 
 - **Default**: `<source>_<index>_<in>-<out>_cut` (a renamed segment uses its custom name instead of the timecodes).
+- **Never overwrites**: an existing name gets `_cut_1`, `_cut_2`… appended; image sequences increment as a **whole group** (a second export lands in the `_cut_1_0001.png` set) and existing frames are left untouched.
 - **Custom template**: set `output_name_template` in the conf, with `{name}`, `{index}`, `{in}` and `{out}`; it only applies to **unnamed** segments and suppresses the `_cut` suffix.
-- **Image additions**: single frames append `_frame`, tiles append `_sheet`, image sequences append a `_%04d` frame number (e.g. `my_video_002_0001.png`).
+- **Image additions**: single frames append `_frame`, tiles append `_sheet`, image sequences append a `_%04d` frame number (e.g. `my_video_002_0001_cut.png`).
 
 ---
 

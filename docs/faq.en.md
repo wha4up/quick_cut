@@ -35,6 +35,8 @@ For stable icons, do one of two things: copy `scripts/quick_cut/fonts/Quickcut_i
 
 The `resume_session` option controls it; set it to `no` to stop recording. To drop one entry, press `x` (clear) in the studio — that also deletes the session for the current media. To clear everything, delete the JSON file.
 
+If the source duration no longer matches the record (re-encoded or re-cut file), the restore is refused with a notice and the entry is **kept** — clear it with `x` or delete the file. If the file itself is corrupt (not valid JSON) the script only disables writing and still starts, telling you to delete it; once deleted, saving works again immediately without restarting mpv.
+
 ---
 
 ### What can undo / redo cover?
@@ -56,6 +58,8 @@ The `resume_session` option controls it; set it to `no` to stop recording. To dr
 **Yes.** When ffmpeg is missing the script falls back to mpv's built-in encoders, so every re-encode export (video, audio extraction, image sequences, animated images) keeps working; for what you lose, see the [capability table in the README](../README.en.md#export-capabilities-without-ffmpeg).
 
 The features you lose are greyed out in the panel — clicking or toggling them does nothing, and hovering states the reason. The panel opens on a usable choice (for example "Re-encode" rather than "Fast copy"), and pressing `m` for merge export reports the reason instead of opening the panel. Installing ffmpeg makes the script prefer it automatically — no configuration needed; restart mpv for it to take effect.
+
+The backup backend spawns one mpv encoder per segment: for video the window starts **minimised**, with no border or progress bar, and does not grab keyboard or mouse input; audio-only exports need no picture and run **without a window**. The video case cannot be fully window-less — mpv's encode mode requires a video output.
 
 ---
 

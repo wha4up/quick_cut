@@ -1,6 +1,6 @@
 -- quick_cut 图标库（**字体字形**）
 -- 图标 = 一个码位，用字体 Quickcut_icons 绘制；字形名与设计源一一对应。
--- 码位：按编号序第 i 个 = U+E900+i（i 从 0 起）。
+-- 码位：按文件名编号序第 i 个 = U+E900+i（i 从 0 起）；编号由 tools/icons_renumber.py 维护。
 
 local utils = require "mp.utils"
 
@@ -78,16 +78,6 @@ local glyph = {
     ["tile_grid"] = "\238\165\134",             -- U+E946
 }
 
--- ── 字体可用性检测 ──────────────────────────────────────────────────
--- 检测不到图标字体时**自动回退"纯文本外观"**：把所有字形置为空串，
--- UI 里所有 `icon~=""` 的判断自然走"无图标"分支 ⇒ 界面变成纯文本，绝不出现豆腐块
---
--- 关键点：libass 只扫描**一个**字体目录——设了 `osd-fonts-dir` 就是它，
--- 没设才是 mpv 默认的 `~~/fonts`。所以「字体文件存在」≠「libass 能加载」：
--- 只把 quick_cut/ 拷进 scripts/ 而不配 osd-fonts-dir 的用户，字体文件在
--- scripts/quick_cut/fonts 里但 libass 扫不到 ⇒ 界面全变空方框。
--- 现在按"实际会被扫描的那个目录"判定，并在安全时（那个目录里一个字体都没有）
--- 直接把 osd-fonts-dir 指向脚本自带的那份，做到开箱即用。
 local function file_exists(path)
     if not path or path == "" then return false end
     local f = io.open(path, "rb")
@@ -100,7 +90,7 @@ local function expand(p)
 end
 
 local ICON_FONT = "Quickcut_icons.ttf"
-local FONT_DIR = "~~/scripts/quick_cut/fonts"   -- 随脚本部署的那份
+local FONT_DIR = "~~/scripts/quick_cut/fonts"
 local FONT_EXTS = { ttf = true, otf = true, ttc = true, otc = true, pfb = true }
 
 local function has_icon_font(dir)
@@ -108,8 +98,6 @@ local function has_icon_font(dir)
     local base = expand(dir)
     return base ~= "" and file_exists(base .. "/" .. ICON_FONT)
 end
--- 该目录里有没有任何字体文件：用于判断"指过去会不会挤掉别人的字体"。
--- 注意 utils.readdir 只接受**已展开的绝对路径**（传 "~~/fonts" 会返回 nil），失败时返回 nil。
 local function dir_has_fonts(dir)
     if not dir or dir == "" then return false end
     local base = expand(dir)
@@ -128,22 +116,18 @@ local FONT_OK = false
 local overridden = false
 local osd_dir = mp.get_property("options/osd-fonts-dir") or ""
 if osd_dir ~= "" then
-    -- 用户显式指定了目录：只有该目录里确实有我们的字体才算可用（尊重用户设置）
     if has_icon_font(osd_dir) then
         FONT_OK = true
     elseif not dir_has_fonts(osd_dir) then
-        -- 用户指的那个目录里一个字体都没有 ⇒ 改指脚本自带那份不会挤掉任何东西
         if pcall(function() mp.set_property("options/osd-fonts-dir", FONT_DIR) end) then
             FONT_OK = has_icon_font(FONT_DIR)
             overridden = FONT_OK
         end
     end
 else
-    -- 没设：libass 扫 ~~/fonts
     if has_icon_font("~~/fonts") then
         FONT_OK = true
     elseif not dir_has_fonts("~~/fonts") then
-        -- ~~/fonts 不存在或没有任何字体 ⇒ 指过去是安全的
         if pcall(function() mp.set_property("options/osd-fonts-dir", FONT_DIR) end) then
             FONT_OK = has_icon_font(FONT_DIR)
             overridden = FONT_OK

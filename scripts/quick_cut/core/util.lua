@@ -1,4 +1,3 @@
--- quick_cut 通用工具
 local mp = require "mp"
 local utils = require "mp.utils"
 local msg = require "mp.msg"
@@ -6,8 +5,6 @@ local msg = require "mp.msg"
 local M = {}
 local deps = {}
 
--- deps（由 core 注入，允许迟绑定）:
---   opts, show_hint, encode_summary
 function M.init(d)
     if d then for k, v in pairs(d) do deps[k] = v end end
 end
@@ -28,18 +25,12 @@ function M.format_time(t)
     return string.format("%02d:%02d:%06.3f", math.floor(t/3600), math.floor(t%3600/60), t%60)
 end
 
--- 按"字符"（非字节）截断长文本：中文路径/stderr 按字节切会落在多字节序列中间，
--- libass 渲染出乱码、日志里出现半个字。from_end=true 保留尾部（路径与 stderr 的尾部信息量最大），
--- 否则保留头部。结果恰好 max 个字符（含省略号）。
--- 全仓库唯一实现：ui.lua 经 ctx 注入使用，export.lua 直接用 U.truncate_chars，勿再各写一份。
 function M.truncate_chars(s, max, from_end)
     s = tostring(s or "")
     local chars = {}
     for ch in s:gmatch("[%z\1-\127\194-\244][\128-\191]*") do chars[#chars + 1] = ch end
     if #chars <= max then return s end
     if from_end == "middle" then
-        -- 中间省略：路径类提示既要保住动作名（"已保存当前帧："）又要保住文件名，
-        -- 只留头或只留尾都会丢掉一半关键信息；头部留 40%、尾部留其余
         local keep = math.max(2, max - 1)
         local head = math.max(1, math.floor(keep * 0.4))
         local tail = keep - head
@@ -49,15 +40,10 @@ function M.truncate_chars(s, max, from_end)
     return table.concat(chars, "", 1, max - 1) .. "…"
 end
 
--- 用户输入的名称 → 安全文件名片段：Windows 不允许 < > : " / \ | ? * 与控制字符，
--- 结尾的点和空格同样非法（"take 1." 建不出文件）；再截断到 max 个字符。
--- 结果为空时回退 fallback，避免拼出 "_001_.mp4" 这种名字。
 function M.safe_filename(s, max, fallback)
     local out = tostring(s or ""):gsub("[%z\1-\31<>:\"/\\|%?%*]", "_")
     out = out:gsub("%s+", " "):gsub("^%s+", ""):gsub("[%s%.]+$", "")
-    -- truncate_chars 的"恰好 max 个字符"含省略号，这里去掉省略号后要的就是 max 个 ⇒ 传 max+1
     out = M.truncate_chars(out, (tonumber(max) or 40) + 1, false):gsub("…$", "")
-    -- 只对"彻底为空"兜底：全非法字符的名字会留下下划线（"___" 是合法文件名，比凭空换成 seg 更诚实）
     if out == "" then return fallback or "seg" end
     return out
 end
@@ -103,21 +89,15 @@ end
 
 function M.safe_time_token(t)
     t = math.max(0, tonumber(t) or 0)
-    local h = math.floor(t/3600); local m = math.floor(t%3600/60); local sec = math.floor(t%60); local ms = math.floor((t-math.floor(t))*1000+0.5)
-    if ms >= 1000 then ms = 0; sec = sec + 1 end
-    return string.format("%02dh%02dm%02ds%03d", h, m, sec, ms)
+    -- 先四舍五入到整数毫秒再拆位：只对毫秒进位会让 59.9999 变成 "00h00m60s000"
+    local total = math.floor(t * 1000 + 0.5)
+    local ms = total % 1000
+    local sec = math.floor(total / 1000) % 60
+    local min = math.floor(total / 60000) % 60
+    local hour = math.floor(total / 3600000)
+    return string.format("%02dh%02dm%02ds%03d", hour, min, sec, ms)
 end
 
--- 字宽模型（**唯一实现，改系数前务必复核**）：
--- 系数按 libass 实测校准（ffmpeg `ass`+`bbox` 滤镜量 ArialMT，fs=100，
--- PlayResX/Y 必须等于视频尺寸否则字体整体缩放；取 16 条真实提示文案做验证集）。
---   汉字 .76em；CJK 标点 / 全角 / 箭头等其它非 ASCII .66em；**拉丁扩展(Ê Ä)与西里尔(Ð Ñ) .53em**
---   ASCII 字母数字 .53em、窄标点 .12em、空格 .30em、'%' .85em
---   特殊码点：中点 .28em、省略号/项目符号 .85em、→ .89em、— .90em、– .50em
--- 校准结果：16 条文案最大偏差 ±6px@fs19。分档更粗的模型误差会到 ±17px 甚至 ±126px，
--- 表现为"提示卡右侧一大片空白 + 提前截断"，以及"文本右侧边距看起来不固定"（卡片宽度随模型误差飘）。
--- 改系数时请用同一方法复测。
--- 之所以按"首字节"分档而不是解 UTF-8 码点：拉丁扩展 D0/D1 等按字母宽度算即可，够用且更快。
 local ASCII_NARROW={[32]=.30,[46]=.12,[44]=.12,[58]=.12,[59]=.12,[33]=.12,[124]=.12,[39]=.12,
     [45]=.12,[47]=.12,[40]=.12,[41]=.12,[91]=.12,[93]=.12}
 local UNI_SPECIAL={["\194\183"]=.28,["\226\128\162"]=.28,["\226\128\166"]=.85,
@@ -132,9 +112,9 @@ function M.text_width(text, fs)
         else
             local sp = UNI_SPECIAL[ch]
             if sp then w = w + sp
-            elseif b >= 0xE4 and b <= 0xE9 then w = w + .76      -- 汉字
-            elseif b == 0xC2 or b == 0xC3 or b == 0xD0 or b == 0xD1 then w = w + .53  -- 拉丁/西里尔扩展
-            else w = w + .66 end                                  -- CJK 标点 / 全角 / 箭头等
+            elseif b >= 0xE4 and b <= 0xE9 then w = w + .76
+            elseif b == 0xC2 or b == 0xC3 or b == 0xD0 or b == 0xD1 then w = w + .53
+            else w = w + .66 end
         end
     end
     return math.floor(w * fs + 2)
@@ -151,7 +131,6 @@ function M.output_dir_for(input_dir)
     if opts.output_directory == "" then return input_dir end
     local expanded = mp.command_native({"expand-path", opts.output_directory})
     if not expanded or expanded == "" then
-        -- 静默回退源目录会让用户误以为输出写进了配置目录；至少留一条日志可排查
         msg.warn("quick_cut: expand-path failed for output_directory='" ..
             tostring(opts.output_directory) .. "'; falling back to source directory")
         return input_dir
@@ -159,29 +138,32 @@ function M.output_dir_for(input_dir)
     return expanded
 end
 
-function M.unique_path(dir, base, ext, suffix)
-    -- suffix 默认 "_cut"（保持既有文件名）；传 "" 表示不追加 —— 自定义命名模板启用时用
-    suffix = (suffix == nil) and "_cut" or tostring(suffix)
-    local p = utils.join_path(dir, base .. suffix .. ext)
-    local i = 1
-    while utils.file_info(p) do
-        p = utils.join_path(dir, string.format("%s%s_%d%s", base, suffix, i, ext)); i = i + 1
-    end
-    return p
+-- 前置声明：unique_path 要用它，而它的实现在本文件靠后。Lua 闭包只捕获**已声明**的
+-- 局部变量，写成后置的 local function 会让这里的引用永远解析成全局 nil。
+local sequence_frames
+
+-- 占名判断：序列模板（含 %04d）不能用 file_info 直接探测——那查的是字面名字，永远不存在，
+-- 于是每次导出都拿到同一个名字、逐帧覆盖上一组。必须按"该模板是否已有帧"判断。
+local function path_taken(dir, name)
+    local frames = sequence_frames and sequence_frames(dir, name)
+    if frames then return next(frames) ~= nil end
+    return utils.file_info(utils.join_path(dir, name)) ~= nil
 end
 
--- 输出文件名的小模板（不是通用模板引擎，只认 4 个占位符）：
---   {name} 源名   {index} 片段序号(3 位)   {in} / {out} 起止时间码
--- 规则：
---   · 未识别的占位符**原样保留**（拼错时一眼能看出，不静默吞掉）；
---   · 占位符在该场景无值（如整片导出的 {index}）时替换为空串；
---   · 解析结果为空 / 全是非法字符时返回 nil，调用方回退默认命名（不会拼出 ".mp4" 这种文件）。
--- 清洗复用 safe_filename（Windows 非法字符、结尾点、长度上限 120 字符）。
+function M.unique_path(dir, base, ext, suffix)
+    suffix = (suffix == nil) and "_cut" or tostring(suffix)
+    local name = base .. suffix .. ext
+    local i = 1
+    while path_taken(dir, name) do
+        name = string.format("%s%s_%d%s", base, suffix, i, ext); i = i + 1
+    end
+    return utils.join_path(dir, name)
+end
+
 function M.apply_name_template(tpl, ctx)
     tpl = tostring(tpl or "")
     if tpl == "" then return nil end
     ctx = ctx or {}
-    -- 一律走函数式替换：值里出现 % 时不会被当成替换串的反向引用
     local function rep(pat, v) tpl = tpl:gsub(pat, function() return tostring(v or "") end) end
     rep("{name}", ctx.name)
     local idx = tonumber(ctx.index)
@@ -227,8 +209,6 @@ end
 function M.cleanup_stale_workdir(path)
     local opts = deps.opts or {}
     if not opts.cleanup_stale_tasks or cleaned_workdirs[path] then return end
-    -- 先读目录、成功后再置位：原来先置位再 readdir，且失败被 `or {}` 吞成空表 ——
-    -- 那样"首次失败"会被记成"已清理"，本进程内永久跳过，且没有任何痕迹。
     local names, derr = utils.readdir(path, "files")
     if not names then
         msg.warn("quick_cut: stale cleanup skipped, cannot list workdir: "
@@ -252,8 +232,6 @@ end
 function M.work_directory(output_dir)
     local path = utils.join_path(output_dir, ".quickcut")
     if M.ensure_directory_quiet(path) then M.cleanup_stale_workdir(path); return path end
-    -- 建不出工作目录时会把 .part/.progress/失败诊断散落到用户的输出目录：必须留日志，
-    -- 否则用户只看到输出目录里多出一堆文件而无从判断（同 output_dir_for 的回退告警）
     msg.warn("quick_cut: cannot create work dir '" .. tostring(path) .. "'; writing temp/diagnostic files into the output dir")
     return output_dir
 end
@@ -265,12 +243,9 @@ function M.write_failure_diagnostic(kind, input, output, queue, args, stderr, ou
     local path = utils.join_path(dir, "failure-"..os.date("%Y%m%d-%H%M%S")..".txt")
     local f = io.open(path, "w")
     if not f then
-        -- 诊断文件是排障的最后手段，写不出来必须留痕
         msg.warn("quick_cut: cannot write failure diagnostic: " .. tostring(path))
         return nil
     end
-    -- 排障的最后手段：这一串写入/关闭一个都不能静默失败（磁盘满 / 文件被占用时
-    -- 用户拿到的会是空或截断的诊断文件，日志里必须留痕），写失败也不返回"看起来有效"的路径。
     local wrote = true
     local function w(...)
         if not wrote then return end
@@ -315,13 +290,40 @@ function M.remove_file_later(path, attempt)
     end)
 end
 
+-- 提交 = 把临时文件改名成最终名字。目标已存在时**绝不删除**：它可能是上一次的导出，
+-- 也可能是别的进程刚写下的文件。此时判失败并保留 temp，由调用方提示。
 function M.commit_output(temp_path, final_path)
-    M.remove_file(final_path)
+    if utils.file_info(final_path) then return false, "exists" end
     local ok, err = os.rename(temp_path, final_path)
     if not ok then
         M.log_error("无法提交输出文件：" .. tostring(err))
-        return false
+        return false, tostring(err)
     end
+    return true
+end
+
+-- 原子替换（Windows 上 os.rename 不能覆盖已存在文件）：旧文件先改名为 .bak，
+-- 再让 tmp 上位，成功后才删 .bak；任何一步失败都把 .bak 恢复回去。
+-- 语义保证：要么新内容生效，要么旧文件原样还在，绝不同时丢（session/config 共用）。
+function M.replace_file(temp_path, final_path)
+    local bak = final_path .. ".bak"
+    local had_old = utils.file_info(final_path) ~= nil
+    if had_old then
+        if utils.file_info(bak) then os.remove(bak) end
+        local ok, err = os.rename(final_path, bak)
+        if not ok then return false, "backup: " .. tostring(err) end
+    end
+    local ok, err = os.rename(temp_path, final_path)
+    if not ok then
+        if had_old then
+            local restored, rerr = os.rename(bak, final_path)
+            if not restored then
+                M.log_error("无法恢复备份文件：" .. tostring(bak) .. "；" .. tostring(rerr))
+            end
+        end
+        return false, tostring(err)
+    end
+    if had_old then os.remove(bak) end
     return true
 end
 
@@ -332,20 +334,17 @@ function M.temp_output_path(final_path)
     return utils.join_path(work, (stem or name)..".part"..(ext or ""))
 end
 
--- 图片序列的临时/最终路径都是含 %04d 的模板，file_info 与 os.rename 均无法直接作用于模板，
--- 必须扫描工作目录、按帧号逐个重命名。
 local function esc_magic(s)
     return (tostring(s):gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1"))
 end
 
--- 拆分模板：返回 "前缀, 后缀"（以 %04d 为界，纯文本查找，不走 pattern）。
 local function split_template(name)
     local pos = tostring(name):find("%04d", 1, true)
     if not pos then return nil end
     return name:sub(1, pos - 1), name:sub(pos + 4)
 end
 
-local function sequence_frames(dir, name)
+sequence_frames = function(dir, name)
     local prefix, suffix = split_template(name)
     if not prefix then return nil end
     local pat = "^" .. esc_magic(prefix) .. "(%d+)" .. esc_magic(suffix) .. "$"
@@ -357,7 +356,6 @@ local function sequence_frames(dir, name)
     return frames
 end
 
--- 把工作目录里的帧序列逐帧提交到最终模板名。任一帧失败即返回 false（已提交的帧留在最终位置，由调用方走诊断路径）。
 function M.commit_image_sequence(temp_template, final_template)
     local temp_dir, temp_name = utils.split_path(temp_template)
     local final_dir, final_name = utils.split_path(final_template)
@@ -369,13 +367,13 @@ function M.commit_image_sequence(temp_template, final_template)
     if count == 0 then return false end
     for n, fname in pairs(frames) do
         local fin = utils.join_path(final_dir, string.format("%s%04d%s", fprefix, n, fsuffix))
-        local ok, err = os.rename(utils.join_path(temp_dir, fname), fin)
-        if not ok then
-            -- 目标已存在（上次提交失败的残留帧）会令 Windows 的 rename 失败：
-            -- 删掉旧帧重试一次，仍失败才按提交失败处理（真因不是 ffmpeg）
-            os.remove(fin)
-            ok, err = os.rename(utils.join_path(temp_dir, fname), fin)
+        -- 重名不删旧帧：删掉再取名会把上一次导出的帧永久抹掉（目录里可能还有更高编号的旧帧），
+        -- 直接判失败并把 temp 留着，让调用方提示"名字被占用"。
+        if utils.file_info(fin) then
+            M.log_error("无法提交输出帧（目标已存在）：" .. tostring(fin))
+            return false
         end
+        local ok, err = os.rename(utils.join_path(temp_dir, fname), fin)
         if not ok then
             M.log_error("无法提交输出帧：" .. tostring(fin) .. "；" .. tostring(err))
             return false
@@ -384,7 +382,6 @@ function M.commit_image_sequence(temp_template, final_template)
     return true
 end
 
--- 清理残留的临时帧序列（单文件版的 remove_file_later 对模板路径无效）。
 function M.remove_image_sequence(template)
     if not template or template == "" then return end
     local dir, name = utils.split_path(template)
@@ -397,8 +394,6 @@ function M.remove_image_sequence(template)
 end
 
 function M.escape_concat_path(path)
-    -- 括号截断 gsub 的第二返回值（替换计数）：工具函数若把计数漏到调用方，
-    -- 会被 f:write 之类的多值参数列表当额外实参写进文件
     return (tostring(path):gsub("'", "'\\''"))
 end
 
@@ -417,30 +412,51 @@ function M.open_directory(path)
             if deps.show_hint then deps.show_hint(L("hint.cannot_open_dir"), 3, "error") end
         end
     end)
-    -- 异步启动失败时回调不会触发：不兜底会让"打开目录"点击毫无反应且无日志
     if not ok_start then
         M.log_error("无法打开输出目录（async start failed）：" .. tostring(start_err) .. "; " .. tostring(path))
         if deps.show_hint then deps.show_hint(L("hint.cannot_open_dir"), 3, "error") end
     end
 end
 
+function M.commit_screenshot(source, outdir, output, opts)
+    opts = opts or {}
+    local work = M.work_directory(outdir)
+    local ext = tostring(opts.ext or ".png"):lower()
+    if ext == ".jpeg" then ext = ".jpg" end
+    local stem = tostring(output or ""):match("([^/\\]+)%.[^.]*$") or "frame"
+    local capture = string.format("%s/%s_shot%s", work, stem,
+        (ext == ".png" or ext == ".jpg" or ext == ".webp" or ext == ".jxl") and ext or ".png")
+    M.remove_file(capture)
+    local flags = {}
+    -- 注意：screenshot 一旦带上 format/quality/high_bit_depth 就隐式要求 --vo=gpu，
+    -- 软解/非 GPU 输出下 mpv 直接报 "Format selection requires the GPU vo" 并失败。
+    -- 兜底路径不能因为"想套用格式"反而存不出图，所以这里只传 scale。
+    local scale = math.floor(tonumber(opts.width) or 0)
+    if scale > 0 then flags.scale = scale end
+    local ok = pcall(mp.command_native, {name = "screenshot", filename = capture, flags = flags})
+    if not ok then
+        M.remove_file(capture)
+        M.log_error("mpv screenshot fallback failed: " .. tostring(capture))
+        return false
+    end
+    M.ensure_output_directory(outdir)
+    if not M.commit_output(capture, output) then
+        M.remove_file(capture)
+        return false
+    end
+    return true
+end
+
 function M.notify(title, body)
     if deps.show_hint then deps.show_hint(title .. "\n" .. body, 4) end
     if package.config:sub(1, 1) ~= "\\" then return end
     local function ps(s) return tostring(s):gsub("[\r\n]", " "):gsub("'", "''") end
-    -- `$t = @(...)` 的 @ 不能去掉：GetElementsByTagName 返回的是**活** XmlNodeList，
-    -- 往 $t[0] 里 AppendChild 会在枚举过程中修改集合，PowerShell 直接抛
-    -- "Collection was modified; enumeration operation may not execute."，
-    -- 于是 $t[1] 变成 null、通知永远发不出去（日志里是两条 BadEnumeration /
-    -- InvokeMethodOnNull 报错）。@() 先拍成数组快照，后续下标访问才安全。
     local script = string.format("[Windows.UI.Notifications.ToastNotificationManager,Windows.UI.Notifications,ContentType=WindowsRuntime]|Out-Null;$x=[Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastText02);$t=@($x.GetElementsByTagName('text'));$t[0].AppendChild($x.CreateTextNode('%s'))|Out-Null;$t[1].AppendChild($x.CreateTextNode('%s'))|Out-Null;$n=[Windows.UI.Notifications.ToastNotification]::new($x);[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('mpv').Show($n)", ps(title), ps(body))
     local ok_start, start_err = mp.command_native_async({name="subprocess", playback_only=false, args={"powershell","-NoProfile","-WindowStyle","Hidden","-Command",script}}, function() end)
     -- 系统通知是尽力而为（脚本内 hint 已提示），但启动失败必须留痕，否则"通知从不出现"无从排查
     if not ok_start then msg.warn("quick_cut: notify subprocess failed to start: " .. tostring(start_err)) end
 end
 
--- 切分参数字符串：按空白分隔，支持单/双引号包裹含空格的整体（用于 -x265-params "k=v k2=v2" 这类值）。
--- 字符级状态机：引号内的空白并入 token；不支持引号内转义、不做变量展开（非 shell 语义）。
 function M.split_args(value)
     local out, token, quote = {}, nil, nil
     for ch in tostring(value or ""):gmatch(".") do
@@ -460,14 +476,26 @@ function M.split_args(value)
     return out
 end
 
--- 过滤会破坏剪切流水线的危险参数（-i/-ss/-t/-to 由脚本控制）
+-- 过滤保留参数：-i/-ss/-t/-to 会与脚本自己的定位/时长参数打架。
+-- 两种写法都要挡住：分离形式（-ss 5）连值一起丢——只丢选项名会把 5 留成输出文件名，
+-- ffmpeg 会直接报 "Unable to choose an output format"；内联形式（-t=5）整 token 丢。
 function M.safe_extra_args(args)
-    local blocked, out = {["-i"]=true, ["-ss"]=true, ["-t"]=true, ["-to"]=true}, {}
-    for _, a in ipairs(args or {}) do
-        if blocked[a] then
-            msg.warn("quick_cut: ignored reserved ffmpeg option in extra args: " .. a)
+    local blocked = {["-i"] = true, ["-ss"] = true, ["-t"] = true, ["-to"] = true}
+    local out, skip = {}, false
+    for _, raw in ipairs(args or {}) do
+        local a = tostring(raw)
+        if skip then
+            skip = false
+            msg.warn("quick_cut: ignored reserved ffmpeg option value in extra args: " .. a)
         else
-            out[#out+1] = a
+            local name = a:match("^(%-[%w:%.%-]+)=")
+            local key = name or a
+            if blocked[key] then
+                msg.warn("quick_cut: ignored reserved ffmpeg option in extra args: " .. key)
+                if not name then skip = true end
+            else
+                out[#out+1] = a
+            end
         end
     end
     return out
@@ -483,16 +511,6 @@ function M.even_coordinate(value)
     return value - value % 2
 end
 
--- ============================================================================
--- 可执行文件定位（ffmpeg / ffprobe）
--- 配置值是裸名（走 PATH）或路径（走文件校验）。裸名在 PATH 里找不到时，再按
--- "脚本自身目录及其上级 → 常见安装路径"查找一遍：便携安装（mpv 目录、portable_config）
--- 下放 ffmpeg.exe 是常见用法，为此让用户手改 conf 不划算。
--- 返回 resolved, source：
---   source = "configured"（显式路径且存在）/ "path"（裸名已在 PATH 中，原样返回）
---          / "script-dir" / "common"（自动定位到的新路径）
--- 全部失败返回 nil（调用方保持原值，让原有的"未找到 ffmpeg"链路照常报错）。
--- ============================================================================
 local WINDOWS = package.config:sub(1,1) == "\\"
 
 local function executable_names(name)
@@ -548,7 +566,6 @@ function M.resolve_executable(value, extra_dirs)
     value = tostring(value or "")
     if value == "" then return nil end
     if has_dir_separator(value) then
-        -- 显式路径：只按原样（含 ~ 展开）校验，不做任何"猜别的目录"
         local expanded = mp.command_native({"expand-path", value})
         if type(expanded) ~= "string" or expanded == "" then expanded = value end
         for _, name in ipairs(executable_names(expanded)) do
@@ -567,7 +584,6 @@ function M.resolve_executable(value, extra_dirs)
             for _, name in ipairs(names) do
                 local direct = utils.join_path(dir, name)
                 if is_file(direct) then return direct, "script-dir" end
-                -- 便携包常见布局：<目录>\bin\ffmpeg.exe
                 local nested = utils.join_path(utils.join_path(dir, "bin"), name)
                 if is_file(nested) then return nested, "script-dir" end
             end
